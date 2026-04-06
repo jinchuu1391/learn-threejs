@@ -3,8 +3,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import vertexShader from "../shaders/vertex.glsl";
 import fragmentShader from "../shaders/fragment.glsl";
-
-const BASE_URL = import.meta.env.BASE_URL;
+import { loadTextures, createLoadingManager } from "../src/utils";
 
 THREE.ColorManagement.enabled = true;
 const scene = new THREE.Scene();
@@ -25,45 +24,16 @@ const controls = new OrbitControls(camera, canvas);
 camera.position.set(0, 0, 30);
 controls.update();
 
-// 로딩 오버레이 DOM 생성
-const loadingEl = document.createElement("div");
-loadingEl.style.cssText = `
-  position:fixed; inset:0; background:#000;
-  display:flex; flex-direction:column; align-items:center;
-  justify-content:center; color:#fff; font-family:sans-serif; gap:12px;
-  transition:opacity 0.5s;
-`;
-loadingEl.innerHTML = `
-  <div>Loading...</div>
-  <div style="width:200px;height:4px;background:#333;border-radius:2px">
-    <div id="progress-bar" style="height:100%;width:0%;background:#4af;border-radius:2px;transition:width 0.1s"></div>
-  </div>
-  <div id="progress-text">0%</div>
-`;
-document.body.prepend(loadingEl);
+const loadingManager = createLoadingManager();
 
-const loadingManager = new THREE.LoadingManager();
-loadingManager.onProgress = (url, loaded, total) => {
-  const pct = Math.round((loaded / total) * 100);
-  document.getElementById("progress-bar").style.width = pct + "%";
-  document.getElementById("progress-text").textContent = pct + "%";
-};
-loadingManager.onLoad = () => {
-  loadingEl.style.opacity = 0;
-  loadingEl.style.pointerEvents = "none";
-};
+const { albedoMap, bumpMap, oceanMap, lightsMap, backgroundMap, cloudsMap } =
+  await loadTextures(loadingManager);
 
-const textureLoader = new THREE.TextureLoader(loadingManager);
-const albedoMap = textureLoader.load(BASE_URL + "Albedo.jpg");
 albedoMap.colorSpace = THREE.SRGBColorSpace;
 
 const earthGroup = new THREE.Group();
 earthGroup.rotation.z = (23.5 / 360) * 2 * Math.PI;
 
-const bumpMap = textureLoader.load(BASE_URL + "Bump.jpg");
-const oceanMap = textureLoader.load(BASE_URL + "Ocean.png");
-const lightsMap = textureLoader.load(BASE_URL + "night_lights.png");
-const backgroundMap = textureLoader.load(BASE_URL + "Gaia_EDR3_darkened.png");
 backgroundMap.mapping = THREE.EquirectangularReflectionMapping;
 scene.background = backgroundMap;
 
@@ -82,7 +52,6 @@ const earthMaterial = new THREE.MeshStandardMaterial({
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 earthGroup.add(earth);
 
-const cloudsMap = textureLoader.load(BASE_URL + "Clouds.png");
 const cloudsGeometry = new THREE.SphereGeometry(earthRadius + 0.05, 64, 64);
 const cloudsMaterial = new THREE.MeshStandardMaterial({
   alphaMap: cloudsMap,
