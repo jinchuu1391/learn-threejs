@@ -28,12 +28,16 @@ const earthGroup = new THREE.Group();
 earthGroup.rotation.z = (23.5 / 360) * 2 * Math.PI;
 
 const bumpMap = textureLoader.load("/Bump.jpg");
+const oceanMap = textureLoader.load("/Ocean.png");
 
 const earthRadius = 10;
 const earthGeometry = new THREE.SphereGeometry(earthRadius, 64, 64);
 const earthMaterial = new THREE.MeshStandardMaterial({
   map: albedoMap,
   bumpMap,
+  roughnessMap: oceanMap,
+  metalness: 0.1,
+  metalnessMap: oceanMap,
 });
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 earthGroup.add(earth);
