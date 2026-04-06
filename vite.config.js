@@ -9,5 +9,5 @@ export default defineConfig({
     emptyOutDir: true,
   },
   plugins: [glsl()],
-  base: "/learn-threejs",
+  base: "/learn-threejs/",
 });
