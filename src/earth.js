@@ -25,7 +25,35 @@ const controls = new OrbitControls(camera, canvas);
 camera.position.set(0, 0, 30);
 controls.update();
 
-const textureLoader = new THREE.TextureLoader();
+// 로딩 오버레이 DOM 생성
+const loadingEl = document.createElement("div");
+loadingEl.style.cssText = `
+  position:fixed; inset:0; background:#000;
+  display:flex; flex-direction:column; align-items:center;
+  justify-content:center; color:#fff; font-family:sans-serif; gap:12px;
+  transition:opacity 0.5s;
+`;
+loadingEl.innerHTML = `
+  <div>Loading...</div>
+  <div style="width:200px;height:4px;background:#333;border-radius:2px">
+    <div id="progress-bar" style="height:100%;width:0%;background:#4af;border-radius:2px;transition:width 0.1s"></div>
+  </div>
+  <div id="progress-text">0%</div>
+`;
+document.body.prepend(loadingEl);
+
+const loadingManager = new THREE.LoadingManager();
+loadingManager.onProgress = (url, loaded, total) => {
+  const pct = Math.round((loaded / total) * 100);
+  document.getElementById("progress-bar").style.width = pct + "%";
+  document.getElementById("progress-text").textContent = pct + "%";
+};
+loadingManager.onLoad = () => {
+  loadingEl.style.opacity = 0;
+  loadingEl.style.pointerEvents = "none";
+};
+
+const textureLoader = new THREE.TextureLoader(loadingManager);
 const albedoMap = textureLoader.load(BASE_URL + "Albedo.jpg");
 albedoMap.colorSpace = THREE.SRGBColorSpace;
 
