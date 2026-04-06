@@ -1,7 +1,10 @@
 // 카메라, 씬, 빛, 지구(geo, mat -> mesh)
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
+import vertexShader from "../shaders/vertex.glsl";
+import fragmentShader from "../shaders/fragment.glsl";
 
+THREE.ColorManagement.enabled = true;
 const scene = new THREE.Scene();
 
 const canvas = document.querySelector("#c");
@@ -29,19 +32,25 @@ earthGroup.rotation.z = (23.5 / 360) * 2 * Math.PI;
 
 const bumpMap = textureLoader.load("/Bump.jpg");
 const oceanMap = textureLoader.load("/Ocean.png");
+const lightsMap = textureLoader.load("/night_lights.png");
+const backgroundMap = textureLoader.load("/Gaia_EDR3_darkened.png");
+backgroundMap.mapping = THREE.EquirectangularReflectionMapping;
+scene.background = backgroundMap;
 
 const earthRadius = 10;
 const earthGeometry = new THREE.SphereGeometry(earthRadius, 64, 64);
 const earthMaterial = new THREE.MeshStandardMaterial({
   map: albedoMap,
   bumpMap,
+  bumpScale: 0.03,
   roughnessMap: oceanMap,
   metalness: 0.1,
   metalnessMap: oceanMap,
+  emissiveMap: lightsMap,
+  emissive: new THREE.Color(0xffff88),
 });
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 earthGroup.add(earth);
-scene.add(earthGroup);
 
 const cloudsMap = textureLoader.load("/Clouds.png");
 const cloudsGeometry = new THREE.SphereGeometry(earthRadius + 0.05, 64, 64);
@@ -54,13 +63,30 @@ earth.rotateY(-0.3);
 clouds.rotateY(-0.3);
 earthGroup.add(clouds);
 
+const atmosGeometry = new THREE.SphereGeometry(12.5, 64, 64);
+const atmosMaterial = new THREE.ShaderMaterial({
+  vertexShader,
+  fragmentShader,
+  uniforms: {
+    atmOpacity: { value: 0.7 },
+    atmPowFactor: { value: 4.1 },
+    atmMultiplier: { value: 9.5 },
+  },
+  blending: THREE.AdditiveBlending,
+  side: THREE.BackSide,
+});
+const atmosphere = new THREE.Mesh(atmosGeometry, atmosMaterial);
+earthGroup.add(atmosphere);
+
 const clock = new THREE.Clock();
 const earthRotationSpeed = 2;
 
-const sunIntensity = 1.3;
+const sunIntensity = 2.5;
 const light = new THREE.DirectionalLight(0xffffff, sunIntensity);
 light.position.set(-50, 0, 30);
 scene.add(light);
+
+scene.add(earthGroup);
 
 earthMaterial.onBeforeCompile = function (shader) {
   shader.uniforms.tClouds = { value: cloudsMap };
@@ -111,9 +137,6 @@ earthMaterial.onBeforeCompile = function (shader) {
         diffuseColor.rgb += atmosphere;
       `,
   );
-
-  // need save to userData.shader in order to enable our code to update values in the shader uniforms,
-  // reference from https://github.com/mrdoob/three.js/blob/master/examples/webgl_materials_modified.html
 
   earthMaterial.userData.shader = shader;
 };
