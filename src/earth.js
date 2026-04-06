@@ -4,6 +4,8 @@ import { OrbitControls } from "three/examples/jsm/Addons.js";
 import vertexShader from "../shaders/vertex.glsl";
 import fragmentShader from "../shaders/fragment.glsl";
 
+const BASE_URL = import.meta.env.BASE_URL;
+
 THREE.ColorManagement.enabled = true;
 const scene = new THREE.Scene();
 
@@ -24,16 +26,16 @@ camera.position.set(0, 0, 30);
 controls.update();
 
 const textureLoader = new THREE.TextureLoader();
-const albedoMap = textureLoader.load("/Albedo.jpg");
+const albedoMap = textureLoader.load(BASE_URL + "Albedo.jpg");
 albedoMap.colorSpace = THREE.SRGBColorSpace;
 
 const earthGroup = new THREE.Group();
 earthGroup.rotation.z = (23.5 / 360) * 2 * Math.PI;
 
-const bumpMap = textureLoader.load("/Bump.jpg");
-const oceanMap = textureLoader.load("/Ocean.png");
-const lightsMap = textureLoader.load("/night_lights.png");
-const backgroundMap = textureLoader.load("/Gaia_EDR3_darkened.png");
+const bumpMap = textureLoader.load(BASE_URL + "Bump.jpg");
+const oceanMap = textureLoader.load(BASE_URL + "Ocean.png");
+const lightsMap = textureLoader.load(BASE_URL + "night_lights.png");
+const backgroundMap = textureLoader.load(BASE_URL + "Gaia_EDR3_darkened.png");
 backgroundMap.mapping = THREE.EquirectangularReflectionMapping;
 scene.background = backgroundMap;
 
@@ -52,7 +54,7 @@ const earthMaterial = new THREE.MeshStandardMaterial({
 const earth = new THREE.Mesh(earthGeometry, earthMaterial);
 earthGroup.add(earth);
 
-const cloudsMap = textureLoader.load("/Clouds.png");
+const cloudsMap = textureLoader.load(BASE_URL + "Clouds.png");
 const cloudsGeometry = new THREE.SphereGeometry(earthRadius + 0.05, 64, 64);
 const cloudsMaterial = new THREE.MeshStandardMaterial({
   alphaMap: cloudsMap,
