@@ -14,5 +14,8 @@ export async function loadTextures(manager: LoadingManager) {
       loader.loadAsync(BASE_URL + "Gaia_EDR3_darkened.png"),
       loader.loadAsync(BASE_URL + "Clouds.png"),
     ]);
+  albedoMap.colorSpace = THREE.SRGBColorSpace;
+  backgroundMap.mapping = THREE.EquirectangularReflectionMapping;
+
   return { albedoMap, bumpMap, oceanMap, lightsMap, backgroundMap, cloudsMap };
 }
